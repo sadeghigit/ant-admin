@@ -2,69 +2,59 @@
 
 import { App, Button, Drawer, Form, Input, Select } from "antd";
 import { gql, useMutation } from '@apollo/client';
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { MittContext } from "../layout";
+import UserImage from "./user-image";
 
 const MUTATION = gql`
 mutation createUser($input: CreateUserInput!) {
-  createUser(input: $input) { id}
+  createUser(input: $input) { id }
 }
 `;
 
-type Props = { onSuccess: () => void }
-export default function CreateUser({ onSuccess }: Props) {
+export default function CreateUser() {
+  const emitter = useContext(MittContext);
+  const { message } = App.useApp()
   const [form] = Form.useForm()
   const [isOpen, setIsOpen] = useState(false)
 
-  const { message } = App.useApp()
-  const [mutate, { loading }] = useMutation(MUTATION);
+  const [mutate, { loading }] = useMutation(MUTATION, {
+    onCompleted: onSaveCompleted,
+    onError: (error) => message.error(error.message),
+  });
 
-  function onError(error: any) {
-    message.error(error.message)
+  function onSaveCompleted() {
+    onDrawerClose()
+    emitter.emit('usersChanged')
   }
 
-  function onCompleted(data: any) {
+  function onFormSubmit(input: any) {
+    mutate({ variables: { input } })
+  }
+
+  function onDrawerOpen() {
+    setIsOpen(true)
+  }
+
+  function onDrawerClose() {
     setIsOpen(false)
-    if (onSuccess) onSuccess()
     form.resetFields()
-  }
-
-  function onFinish(input: any) {
-    mutate({ onCompleted, onError, variables: { input } })
   }
 
   return (
     <>
-      <Button type="primary"
-        onClick={() => setIsOpen(!isOpen)}>
-        Create User
+      <Button type="primary" onClick={onDrawerOpen}>
+        Create
       </Button>
 
-      <Drawer open={isOpen} title="Create User"
-        onClose={() => setIsOpen(false)}>
+      <Drawer open={isOpen} title="Create User" width={500}
+        closable={false} onClose={onDrawerClose}>
 
-        <Form form={form} layout="vertical" onFinish={onFinish} disabled={loading}>
+        <Form form={form} labelAlign="left"
+          labelCol={{ style: { minWidth: 100 } }}
+          onFinish={onFormSubmit} disabled={loading}>
 
-          <Form.Item
-            label="Mobile"
-            name={'mobile'}
-            rules={[
-              { required: true, message: " Mobile is required" },
-              { pattern: /^09[0-9]{9}$/, message: " Mobile is invalid" },
-            ]}>
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="Password"
-            name={'password'}
-            rules={[
-              { required: true, message: " Password is required" }
-            ]}>
-            <Input.Password />
-          </Form.Item>
-
-          <Form.Item
-            label="Role"
-            name={'userRole'}
+          <Form.Item label="Role" name={'userRole'}
             rules={[
               { required: true, message: "Role is required" }
             ]}>
@@ -73,8 +63,35 @@ export default function CreateUser({ onSuccess }: Props) {
               { label: "Member", value: "MEMBER" },
             ]} />
           </Form.Item>
+
+          <Form.Item label="Mobile" name={'mobile'}
+            rules={[
+              { required: true, message: "Mobile is required" },
+              { pattern: /^09[0-9]{9}$/, message: "Mobile is invalid" },
+            ]}>
+            <Input />
+          </Form.Item>
+
+          <Form.Item label="Image" name={'imageUrl'}
+            rules={[
+              { required: true, message: "Image is required" },
+            ]}>
+            <UserImage open={isOpen} />
+          </Form.Item>
+
+          <Form.Item label="Password" name={'password'}
+            rules={[
+              { required: true, message: "Password is required" }
+            ]}>
+            <Input.Password />
+          </Form.Item>
+
           <Button type="primary" htmlType="submit"
-            loading={loading}>Save</Button>
+            style={{ marginLeft: 100, minWidth: 100 }}
+            loading={loading} >
+            Save
+          </Button>
+
         </Form>
       </Drawer>
     </>

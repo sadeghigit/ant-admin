@@ -12,6 +12,5 @@ export default function Layout({ children }: Props) {
         </AntLayout.Content>
       </AntLayout>
     </AntLayout>
-
   )
 }

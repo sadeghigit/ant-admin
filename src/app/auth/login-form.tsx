@@ -34,22 +34,22 @@ export default function LoginForm() {
   }
 
   return (
-    <Form layout="vertical" onFinish={onFinish}>
+    <Form layout="vertical" onFinish={onFinish} style={{ minWidth: 300 }} >
       <Typography.Title level={4}>
         Login Form
       </Typography.Title>
       <Form.Item label="Mobile"
         name={'mobile'}
         rules={[
-          { required: true, message: " Mobile is required" },
-          { pattern: /^09[0-9]{9}$/, message: " Mobile is invalid" },
+          { required: true, message: "Mobile is required" },
+          { pattern: /^09[0-9]{9}$/, message: "Mobile is invalid" },
         ]}>
         <Input />
       </Form.Item>
       <Form.Item label="Password"
         name={'password'}
         rules={[
-          { required: true, message: " Password is required" }
+          { required: true, message: "Password is required" }
         ]}>
         <Input.Password />
       </Form.Item>

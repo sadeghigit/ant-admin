@@ -4,10 +4,8 @@ import { Breadcrumb, Flex } from "antd";
 import UsersTable from "./users-table";
 import Link from "next/link";
 import CreateUser from "./create-user";
-import { useState } from "react";
 
 export default function Page() {
-  const [refresh,setRefresh] = useState(Math.random())
   return (
     <main style={{ padding: 24 }}>
       <Flex justify="space-between"
@@ -18,9 +16,9 @@ export default function Page() {
             { title: "Users", },
           ]}
         />
-        <CreateUser onSuccess={() => setRefresh(Math.random())} />
+        <CreateUser />
       </Flex>
-      <UsersTable refresh={refresh} />
+      <UsersTable />
     </main>
   )
 }

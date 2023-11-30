@@ -1,11 +1,12 @@
 "use client"
 
-import { Space, Table } from "antd";
+import { Space, Table, Tag } from "antd";
 import { gql, useQuery } from '@apollo/client';
 import UpdateUser from "./update-user";
 import DeleteUser from "./delete-user";
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import moment from "moment-jalaali"
+import { MittContext } from "../layout";
 
 const QUERY = gql`
 query {
@@ -13,42 +14,56 @@ query {
 }
 `;
 
-type Props = { refresh: number }
-export default function UsersTable({ refresh }: Props) {
+export default function UsersTable() {
+  const emitter = useContext(MittContext);
+
   const { loading, data, refetch } = useQuery(QUERY);
 
   useEffect(() => {
-    refetch()
-  }, [refresh])
+    emitter.on('usersChanged', () => refetch())
+    return () => emitter.off('usersChanged')
+  })
 
   return (
     <Table
+      rowKey={'id'}
       loading={loading}
       dataSource={data?.getUsers || []}
       columns={[
-        { dataIndex: "mobile", title: "Mobile" },
-        { dataIndex: "userRole", title: "User Role", width: 100 },
+        {
+          dataIndex: "mobile", title: "Mobile",
+          sorter: true
+        },
+        {
+          dataIndex: "userRole", title: "Role",
+          width: 100, sorter: true,
+          render(value) {
+            if (value == "ADMIN") return <Tag color="red">Admin</Tag>
+            if (value == "MEMBER") return <Tag color="green">Member</Tag>
+          }
+        },
         {
           dataIndex: "createdAt", title: "Created At",
-          width: 150,
+          width: 141, sorter: true,
           render(value) {
             return moment(value).format('jYYYY/jMM/jDD HH:mm')
           }
         },
         {
           dataIndex: "updatedAt", title: "Updated At",
-          width: 150,
+          width: 141, sorter: true,
           render(value) {
             return moment(value).format('jYYYY/jMM/jDD HH:mm')
           }
         },
         {
-          dataIndex: "id", title: "Action", width: 160,
+          dataIndex: "id", title: "Action",
+          width: 160,
           render(value) {
             return (
               <Space>
-                <UpdateUser id={value} onSuccess={() => refetch()} />
-                <DeleteUser id={value} onSuccess={() => refetch()} />
+                <UpdateUser id={value} />
+                <DeleteUser id={value} />
               </Space>
             )
           }

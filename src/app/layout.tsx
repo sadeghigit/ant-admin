@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import '../../public/globals.css'
 import Apollo from './apollo'
 import { App } from 'antd';
+import '../../public/globals.css'
 
 export const metadata: Metadata = {
   title: 'Ant Admin',

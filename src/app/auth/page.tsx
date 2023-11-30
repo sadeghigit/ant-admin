@@ -1,4 +1,4 @@
-import { Card, Col, Flex, Row } from "antd";
+import { Card, Col, Row } from "antd";
 import LoginForm from "./login-form";
 
 export default function Page() {

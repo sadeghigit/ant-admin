@@ -2,7 +2,9 @@
 
 import { App, Button, Popconfirm } from "antd";
 import { gql, useMutation } from '@apollo/client';
-import * as Icons from "@ant-design/icons"
+import { QuestionCircleOutlined } from "@ant-design/icons"
+import { useContext } from "react";
+import { MittContext } from "../layout";
 
 const MUTATION = gql`
 mutation deleteUser($id: ID!) {
@@ -10,8 +12,10 @@ mutation deleteUser($id: ID!) {
 }
 `;
 
-type Props = { id: string, onSuccess: () => void }
-export default function DeleteUser({ id, onSuccess }: Props) {
+type Props = { id: string }
+export default function DeleteUser({ id }: Props) {
+  const emitter = useContext(MittContext);
+
   const { message } = App.useApp()
   const [mutate] = useMutation(MUTATION);
 
@@ -20,7 +24,7 @@ export default function DeleteUser({ id, onSuccess }: Props) {
   }
 
   function onCompleted() {
-    if (onSuccess) onSuccess()
+    emitter.emit('usersChanged')
   }
 
   function onConfirm() {
@@ -32,6 +36,7 @@ export default function DeleteUser({ id, onSuccess }: Props) {
       placement="bottomLeft"
       title="Delete User"
       description="Are you sure, you want to delete user?"
+      icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
       onConfirm={() => onConfirm()}>
       <Button type="primary" danger size="small">
         Delete

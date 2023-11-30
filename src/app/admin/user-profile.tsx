@@ -1,34 +1,34 @@
 "use client"
 
-import { App, Button, Drawer, Form, Input, Select } from "antd";
+import { App, Avatar, Button, Drawer, Form, Input } from "antd";
 import { gql, useLazyQuery, useMutation } from '@apollo/client';
 import { useContext, useState } from "react";
-import { MittContext } from "../layout";
-import UserImage from "./user-image";
+import { UserOutlined } from "@ant-design/icons"
+import { MittContext } from "./layout";
+import UserImage from "./users/user-image";
 
-const GET_USER = gql`
-query getUser($id:ID!){
-  getUser(id:$id){ mobile userRole imageUrl }
+const GET_PROFILE = gql`
+query getProfile{
+  getProfile{ mobile imageUrl }
 }
 `;
 
-const UPDATE_USER = gql`
-mutation updateUser($id:ID!,$input: UpdateUserInput!) {
-  updateUser(id:$id, input: $input) 
+const UPDATE_PROFILE = gql`
+mutation updateProfile($input: UpdateProfileInput!) {
+  updateProfile(input: $input) 
 }
 `;
 
-type Props = { id: string }
-export default function UpdateUser({ id }: Props) {
-  const emitter = useContext(MittContext);
+export default function UserProfile() {
   const { message } = App.useApp()
+  const emitter = useContext(MittContext);
   const [form] = Form.useForm()
   const [isOpen, setIsOpen] = useState(false)
 
-  const [runGetUser, getUser] = useLazyQuery(GET_USER, {
+  const [runGetProfile, getProfile] = useLazyQuery(GET_PROFILE, {
     fetchPolicy: "network-only",
-    onCompleted: (data) => form.setFieldsValue(data.getUser),
-    onError: (error) => message.error(error.message),
+    onCompleted: (data) => form.setFieldsValue(data.getProfile),
+    onError: (error) => message.error(error.message)
   });
 
   function onSaveCompleted() {
@@ -36,18 +36,20 @@ export default function UpdateUser({ id }: Props) {
     emitter.emit('usersChanged')
   }
 
-  const [runUpdateUser, updateUser] = useMutation(UPDATE_USER, {
+  const [runUpdateProfile, updateProfile] = useMutation(UPDATE_PROFILE, {
     onCompleted: onSaveCompleted,
     onError: (error) => message.error(error.message),
   });
 
   function onFormSubmit(input: any) {
-    runUpdateUser({ variables: { input, id } })
+    runUpdateProfile({ variables: { input } })
   }
 
+  const loading = getProfile.loading || updateProfile.loading
+
   function onDrawerOpen() {
+    runGetProfile()
     setIsOpen(true)
-    runGetUser({ variables: { id } })
   }
 
   function onDrawerClose() {
@@ -55,30 +57,17 @@ export default function UpdateUser({ id }: Props) {
     form.resetFields()
   }
 
-  const loading = getUser.loading || updateUser.loading
-
   return (
     <>
-      <Button type="primary" size="small" onClick={onDrawerOpen}>
-        Update
-      </Button>
+      <Avatar shape="square" icon={<UserOutlined />}
+        onClick={onDrawerOpen} />
 
-      <Drawer open={isOpen} title="Upload User"
+      <Drawer open={isOpen} title="Upload Profile"
         width={500} closable={false} onClose={onDrawerClose}>
 
         <Form form={form} labelAlign="left"
           labelCol={{ style: { minWidth: 100 } }}
           onFinish={onFormSubmit} disabled={loading}>
-
-          <Form.Item label="Role" name={'userRole'}
-            rules={[
-              { required: true, message: "Role is required" }
-            ]}>
-            <Select options={[
-              { label: "Admin", value: "ADMIN" },
-              { label: "Member", value: "MEMBER" },
-            ]} />
-          </Form.Item>
 
           <Form.Item label="Mobile" name={'mobile'}
             rules={[
